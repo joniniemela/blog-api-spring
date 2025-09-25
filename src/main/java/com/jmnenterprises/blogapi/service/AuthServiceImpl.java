@@ -5,7 +5,6 @@ import com.jmnenterprises.blogapi.dto.RegisterResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,14 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public RegisterResponse register(RegisterDTO registerDTO) {
+        if(authRepository.existsByEmail(registerDTO.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        if (authRepository.existsByUsername(registerDTO.getUsername())) {
+            throw new RuntimeException("Username is already taken");
+        }
+
         User user = modelMapper.map(registerDTO, User.class);
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         user.setCreatedAt(LocalDateTime.now());

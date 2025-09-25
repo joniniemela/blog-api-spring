@@ -38,7 +38,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Object> register(@Valid @RequestBody RegisterDTO registerDTO) {
-        return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, authService.register(registerDTO));
+        try {
+            Object result = authService.register(registerDTO);
+            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, authService.register(registerDTO));
+        } catch (RuntimeException e) {
+            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
+        }
     }
 
     @PostMapping("/login")
