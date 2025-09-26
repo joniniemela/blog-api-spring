@@ -40,7 +40,7 @@ public class AuthController {
     public ResponseEntity<Object> register(@Valid @RequestBody RegisterDTO registerDTO) {
         try {
             Object result = authService.register(registerDTO);
-            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, authService.register(registerDTO));
+            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, result);
         } catch (RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
@@ -56,6 +56,7 @@ public class AuthController {
             LoginResponse loginResponse = LoginResponse
                     .builder()
                     .accessToken(jwt)
+                    .tokenType("Bearer")
                     .build();
             return ResponseHandler.generateResponse("User logged in successfully", HttpStatus.OK, loginResponse);
         }
