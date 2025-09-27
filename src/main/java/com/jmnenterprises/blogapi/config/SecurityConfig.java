@@ -3,11 +3,9 @@ package com.jmnenterprises.blogapi.config;
 import com.jmnenterprises.blogapi.security.JWTFilter;
 import com.jmnenterprises.blogapi.service.UserInfoConfigManager;
 import com.jmnenterprises.blogapi.utils.AppConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,11 +18,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Autowired
-    private JWTFilter jwtFilter;
 
-    @Autowired
-    private UserInfoConfigManager userInfoConfigManager;
+    private final JWTFilter jwtFilter;
+    private final UserInfoConfigManager userInfoConfigManager;
+
+    public SecurityConfig(JWTFilter jwtFilter, UserInfoConfigManager userInfoConfigManager) {
+        this.jwtFilter = jwtFilter;
+        this.userInfoConfigManager = userInfoConfigManager;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,13 +36,9 @@ public class SecurityConfig {
                         .anyRequest()
                         .authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
+                .userDetailsService(userInfoConfigManager)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userInfoConfigManager).passwordEncoder(passwordEncoder());
     }
 
     @Bean
