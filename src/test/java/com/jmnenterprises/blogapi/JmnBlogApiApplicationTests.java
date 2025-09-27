@@ -1,10 +1,7 @@
 package com.jmnenterprises.blogapi;
 
-import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.jmnenterprises.blogapi.dto.LoginDTO;
 import com.jmnenterprises.blogapi.dto.RegisterDTO;
 import org.assertj.core.api.Assertions;
