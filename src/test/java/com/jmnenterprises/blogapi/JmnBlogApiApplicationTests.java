@@ -119,4 +119,32 @@ class JmnBlogApiApplicationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
+
+    @Test
+    void userCannotCreateBlogWithoutRequiredFields() {
+        CreateBlogDTO newBlog1 = new CreateBlogDTO(null, "Tämä on blogin sisältöteksti.");
+        HttpEntity<CreateBlogDTO> requestEntity1 = new HttpEntity<>(newBlog1, entity.getHeaders());
+
+        ResponseEntity<String> response1 = restTemplate.exchange(
+                "/api/blog/create",
+                HttpMethod.POST,
+                requestEntity1,
+                String.class
+        );
+
+        assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        CreateBlogDTO newBlog2 = new CreateBlogDTO("TervetuloaTesti", null);
+        HttpEntity<CreateBlogDTO> requestEntity2 = new HttpEntity<>(newBlog2, entity.getHeaders());
+
+        ResponseEntity<String> response2 = restTemplate.exchange(
+                "/api/blog/create",
+                HttpMethod.POST,
+                requestEntity2,
+                String.class
+        );
+
+        assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    }
 }

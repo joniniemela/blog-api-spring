@@ -24,7 +24,7 @@ public class Blog {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private User author;
 
     private LocalDateTime createdAt;

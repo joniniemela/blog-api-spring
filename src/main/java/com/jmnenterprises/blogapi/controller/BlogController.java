@@ -1,8 +1,7 @@
 package com.jmnenterprises.blogapi.controller;
 
+import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
-import com.jmnenterprises.blogapi.entity.Blog;
-import com.jmnenterprises.blogapi.repository.BlogRepository;
 import com.jmnenterprises.blogapi.service.BlogService;
 import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;
@@ -13,23 +12,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
+
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/blog")
 public class BlogController {
 
-    private final BlogRepository blogRepository;
     private final BlogService blogService;
 
-    public BlogController(BlogRepository blogRepository, BlogService blogService) {
-        this.blogRepository = blogRepository;
+    public BlogController(BlogService blogService) {
         this.blogService = blogService;
     }
 
     @GetMapping
-    private ResponseEntity<List<Blog>> getAll(Pageable pageable){
-        Page<Blog> page = blogRepository.findAll(
+    private ResponseEntity<List<BlogResponse>> getAll(Pageable pageable){
+        Page<BlogResponse> page = blogService.findAll(
                 PageRequest.of(
                         pageable.getPageNumber(),
                         pageable.getPageSize(),
@@ -41,10 +40,11 @@ public class BlogController {
     }
 
     @PostMapping("/create")
-    private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO){
+    private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal){
         try {
-            Object result = blogService.createBlog(createBlogDTO);
-            return ResponseHandler.generateResponse("New blog created successfully", HttpStatus.CREATED, result);
+            String author = principal.getName();
+            blogService.createBlog(createBlogDTO, author);
+            return ResponseHandler.generateResponse("New blog created successfully", HttpStatus.CREATED, null);
         } catch(RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
