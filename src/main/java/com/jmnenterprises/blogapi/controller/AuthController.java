@@ -62,7 +62,7 @@ public class AuthController {
         }
         catch (Exception e)
         {
-            return new ResponseEntity<>("Incorrect username or password", HttpStatus.BAD_REQUEST);
+            return ResponseHandler.generateResponse("Incorrect username or password", HttpStatus.UNAUTHORIZED, null);
         }
     }
 }
