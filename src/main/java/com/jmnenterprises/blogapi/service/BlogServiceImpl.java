@@ -2,6 +2,7 @@ package com.jmnenterprises.blogapi.service;
 
 import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
+import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.entity.Blog;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
@@ -27,14 +28,14 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public BlogResponse createBlog(CreateBlogDTO createBlogDTO, String author) {
+    public CreateBlogResponse createBlog(CreateBlogDTO createBlogDTO, String author) {
         Blog blog = modelMapper.map(createBlogDTO, Blog.class);
         blog.setCreatedAt(LocalDateTime.now());
         blog.setUpdatedAt(LocalDateTime.now());
         User user = authRepository.findByUsername(author);
         blog.setAuthor(user);
         Blog save = blogRepository.save(blog);
-        return modelMapper.map(save, BlogResponse.class);
+        return modelMapper.map(save, CreateBlogResponse.class);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.jmnenterprises.blogapi.controller;
 
 import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
+import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.service.BlogService;
 import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;
@@ -43,7 +44,7 @@ public class BlogController {
     private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal){
         try {
             String author = principal.getName();
-            BlogResponse response = blogService.createBlog(createBlogDTO, author);
+            CreateBlogResponse response = blogService.createBlog(createBlogDTO, author);
             return ResponseHandler.generateResponse("New blog created successfully", HttpStatus.CREATED, response);
         } catch(RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
