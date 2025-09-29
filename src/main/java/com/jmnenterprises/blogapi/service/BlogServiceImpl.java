@@ -27,14 +27,14 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void createBlog(CreateBlogDTO createBlogDTO, String author) {
+    public BlogResponse createBlog(CreateBlogDTO createBlogDTO, String author) {
         Blog blog = modelMapper.map(createBlogDTO, Blog.class);
         blog.setCreatedAt(LocalDateTime.now());
         blog.setUpdatedAt(LocalDateTime.now());
         User user = authRepository.findByUsername(author);
         blog.setAuthor(user);
         Blog save = blogRepository.save(blog);
-        modelMapper.map(save, BlogResponse.class);
+        return modelMapper.map(save, BlogResponse.class);
     }
 
     @Override

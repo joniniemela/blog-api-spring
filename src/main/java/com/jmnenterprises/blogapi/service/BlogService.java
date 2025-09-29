@@ -7,7 +7,7 @@ import org.springframework.data.domain.PageRequest;
 
 
 public interface BlogService {
-    void createBlog(CreateBlogDTO createBlogDTO, String author);
+    BlogResponse createBlog(CreateBlogDTO createBlogDTO, String author);
 
     Page<BlogResponse> findAll(PageRequest pageRequest);
 }
