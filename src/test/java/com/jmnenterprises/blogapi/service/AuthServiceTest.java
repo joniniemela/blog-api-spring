@@ -1,18 +1,24 @@
 package com.jmnenterprises.blogapi.service;
 
+import com.jmnenterprises.blogapi.dto.LoginDTO;
+import com.jmnenterprises.blogapi.dto.LoginResponse;
 import com.jmnenterprises.blogapi.dto.RegisterDTO;
 import com.jmnenterprises.blogapi.dto.RegisterResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
+import com.jmnenterprises.blogapi.security.JWTUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
@@ -23,10 +29,20 @@ public class AuthServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    @InjectMocks AuthServiceImpl authService;
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private UserInfoConfigManager userInfoConfigManager;
+
+    @Mock
+    private JWTUtil jwtUtil;
+
+    @InjectMocks
+    AuthServiceImpl authService;
 
     @Test
-    void shouldRegisterUser() {
+    void userCanBeRegistered() {
         RegisterDTO registerRequest = new RegisterDTO("testloginuser123", "Password123!", "test@example.com");
         User user = new User();
         user.setUsername(registerRequest.getUsername());
@@ -43,6 +59,22 @@ public class AuthServiceTest {
         User repositoryResult = authRepository.findByUsername(registerRequest.getUsername());
 
         assertEquals(repositoryResult.getUsername(), result.getUsername());
+    }
+
+    @Test
+    void userCanLoginAndReceiveAccessToken() {
+        LoginDTO loginRequest = new LoginDTO("testloginuser123", "Password123!");
+
+        when(authenticationManager.authenticate(any())).thenReturn(mock(org.springframework.security.core.Authentication.class));
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userInfoConfigManager.loadUserByUsername(loginRequest.getUsername())).thenReturn(userDetails);
+        when(userDetails.getUsername()).thenReturn(loginRequest.getUsername());
+        when(jwtUtil.generateToken(loginRequest.getUsername())).thenReturn("mocked-access-token");
+
+        LoginResponse result = authService.login(loginRequest);
+
+        assertEquals("mocked-access-token", result.getAccessToken());
+        assertEquals("Bearer", result.getTokenType());
     }
 
 }
