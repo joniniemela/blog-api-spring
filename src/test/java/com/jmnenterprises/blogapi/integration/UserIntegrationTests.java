@@ -33,6 +33,7 @@ public class UserIntegrationTests {
 
         assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(registerResponse.getBody()).isNotNull();
+        assertThat(registerResponse.getBody()).contains("newuser");
     }
 
     @Test
