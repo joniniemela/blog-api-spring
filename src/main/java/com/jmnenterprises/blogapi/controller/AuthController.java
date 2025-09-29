@@ -3,6 +3,7 @@ package com.jmnenterprises.blogapi.controller;
 import com.jmnenterprises.blogapi.dto.LoginDTO;
 import com.jmnenterprises.blogapi.dto.LoginResponse;
 import com.jmnenterprises.blogapi.dto.RegisterDTO;
+import com.jmnenterprises.blogapi.dto.RegisterResponse;
 import com.jmnenterprises.blogapi.service.AuthService;
 import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;
@@ -27,8 +28,8 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Object> register(@Valid @RequestBody RegisterDTO registerDTO) {
         try {
-            Object result = authService.register(registerDTO);
-            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, result);
+            RegisterResponse registerResponse = authService.register(registerDTO);
+            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, registerResponse);
         } catch (RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
