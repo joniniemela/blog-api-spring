@@ -13,7 +13,7 @@ public class BlogResponse {
     private Long id;
     private String title;
     private String content;
-    private String author_username;
+    private String authorUsername;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

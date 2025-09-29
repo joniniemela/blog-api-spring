@@ -43,7 +43,8 @@ public class BlogServiceImpl implements BlogService {
         Page<Blog> blogs = blogRepository.findAll(pageRequest);
         return blogs.map(blog -> {
             BlogResponse response = modelMapper.map(blog, BlogResponse.class);
-            response.setAuthor_username(blog.getAuthor().getUsername());
+            String username = blog.getAuthor() != null ? blog.getAuthor().getUsername() : "unknown";
+            response.setAuthorUsername(username);
             return response;
         });
     }

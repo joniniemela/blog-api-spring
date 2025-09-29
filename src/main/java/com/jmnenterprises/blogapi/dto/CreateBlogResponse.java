@@ -12,6 +12,7 @@ public class CreateBlogResponse {
     private Long id;
     private String title;
     private String content;
+    private String authorUsername;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
