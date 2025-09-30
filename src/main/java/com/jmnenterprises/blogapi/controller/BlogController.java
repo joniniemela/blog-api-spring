@@ -4,7 +4,6 @@ import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
 import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.service.BlogService;
-import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,15 +39,25 @@ public class BlogController {
 
     }
 
+    @GetMapping("/{id}")
+    private ResponseEntity<BlogResponse> getById(@PathVariable Long id){
+        try {
+            BlogResponse blog = blogService.findById(id);
+            return ResponseEntity.ok(blog);
+        } catch(RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
     @PostMapping("/create")
-    private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal){
+    private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal) {
         try {
             String author = principal.getName();
             CreateBlogResponse response = blogService.createBlog(createBlogDTO, author);
-            return ResponseHandler.generateResponse("New blog created successfully", HttpStatus.CREATED, response);
-        } catch(RuntimeException e) {
-            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 }

@@ -48,4 +48,13 @@ public class BlogServiceImpl implements BlogService {
             return response;
         });
     }
+
+    @Override
+    public BlogResponse findById(Long id) {
+        Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog not found"));
+        BlogResponse response = modelMapper.map(blog, BlogResponse.class);
+        String username = blog.getAuthor() != null ? blog.getAuthor().getUsername() : "unknown";
+        response.setAuthorUsername(username);
+        return response;
+    }
 }

@@ -72,6 +72,36 @@ public class BlogIntegrationTests {
     }
 
     @Test
+    void userCanCreateAndGetBlogById() {
+        // Create a new blog
+        CreateBlogDTO newBlog = new CreateBlogDTO("TestTitle", "TestContent");
+        HttpEntity<CreateBlogDTO> requestEntity = new HttpEntity<>(newBlog, entity.getHeaders());
+
+        ResponseEntity<String> createResponse = restTemplate.exchange(
+                "/api/blog/create",
+                HttpMethod.POST,
+                requestEntity,
+                String.class
+        );
+
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        DocumentContext ctx = JsonPath.parse(createResponse.getBody());
+        Integer blogId = ctx.read("$.data.id");
+
+        ResponseEntity<String> getResponse = restTemplate.exchange(
+                "/api/blog/" + blogId,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponse.getBody()).contains("TestTitle");
+    }
+
+
+    @Test
     void userCanCreateABlog() {
 
         CreateBlogDTO newBlog = new CreateBlogDTO("TervetuloaTesti", "Tämä on blogin sisältöteksti.");
