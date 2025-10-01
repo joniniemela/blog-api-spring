@@ -73,7 +73,7 @@ public class BlogIntegrationTests {
 
     @Test
     void userCanCreateAndGetBlogById() {
-        // Create a new blog
+
         CreateBlogDTO newBlog = new CreateBlogDTO("TestTitle", "TestContent");
         HttpEntity<CreateBlogDTO> requestEntity = new HttpEntity<>(newBlog, entity.getHeaders());
 
@@ -87,7 +87,7 @@ public class BlogIntegrationTests {
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         DocumentContext ctx = JsonPath.parse(createResponse.getBody());
-        Integer blogId = ctx.read("$.data.id");
+        Integer blogId = ctx.read("$.id");
 
         ResponseEntity<String> getResponse = restTemplate.exchange(
                 "/api/blog/" + blogId,
