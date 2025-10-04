@@ -239,7 +239,157 @@ class BlogServiceTest {
         }
     }
 
-    // Helper methods for creating test objects
+    @Nested
+    @DisplayName("Update Blog")
+    class UpdateBlogTests {
+
+        private static final String UPDATED_TITLE = "Updated Blog Title";
+        private static final String UPDATED_CONTENT = "Updated blog content";
+
+        @Test
+        @DisplayName("Should successfully update an existing blog")
+        void shouldSuccessfullyUpdateAnExistingBlog() {
+            // Given
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog existingBlog = createTestBlog();
+            Blog updatedBlog = createUpdatedBlog();
+            BlogResponse expectedResponse = createBlogResponse(BLOG_ID, UPDATED_TITLE, USERNAME);
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.save(any(Blog.class))).thenReturn(updatedBlog);
+            when(modelMapper.map(updatedBlog, BlogResponse.class)).thenReturn(expectedResponse);
+
+            // When
+            BlogResponse result = blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(BLOG_ID);
+            assertThat(result.getTitle()).isEqualTo(UPDATED_TITLE);
+            assertThat(result.getAuthorUsername()).isEqualTo(USERNAME);
+
+            verify(blogRepository).findById(BLOG_ID);
+            verify(blogRepository).save(any(Blog.class));
+            verify(modelMapper).map(updatedBlog, BlogResponse.class);
+        }
+
+        @Test
+        @DisplayName("Should update blog timestamps when updating")
+        void shouldUpdateBlogTimestampsWhenUpdating() {
+            // Given
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog existingBlog = createTestBlog();
+            LocalDateTime originalUpdatedAt = existingBlog.getUpdatedAt();
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+
+            // When
+            blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
+
+            // Then
+            verify(blogRepository).save(argThat(blog ->
+                blog.getUpdatedAt() != null &&
+                blog.getUpdatedAt().isAfter(originalUpdatedAt.minusSeconds(1))
+            ));
+        }
+
+        @Test
+        @DisplayName("Should update title and content correctly")
+        void shouldUpdateTitleAndContentCorrectly() {
+            // Given
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog existingBlog = createTestBlog();
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+
+            // When
+            blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
+
+            // Then
+            verify(blogRepository).save(argThat(blog ->
+                blog.getTitle().equals(UPDATED_TITLE) &&
+                blog.getContent().equals(UPDATED_CONTENT)
+            ));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when updating non-existent blog")
+        void shouldThrowExceptionWhenUpdatingNonExistentBlog() {
+            // Given
+            Long nonExistentId = 999L;
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+
+            when(blogRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> blogService.editBlog(nonExistentId, updateBlogDTO, USERNAME))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("Blog not found");
+
+            verify(blogRepository).findById(nonExistentId);
+            verify(blogRepository, never()).save(any(Blog.class));
+            verifyNoInteractions(modelMapper);
+        }
+
+        @Test
+        @DisplayName("Should preserve author when updating blog")
+        void shouldPreserveAuthorWhenUpdatingBlog() {
+            // Given
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog existingBlog = createTestBlog();
+            User originalAuthor = existingBlog.getAuthor();
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+
+            // When
+            blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
+
+            // Then
+            verify(blogRepository).save(argThat(blog ->
+                blog.getAuthor() != null &&
+                blog.getAuthor().equals(originalAuthor)
+            ));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user does not own the blog")
+        void shouldThrowExceptionWhenUserDoesNotOwnBlog() {
+            // Given
+            String differentUsername = "differentuser";
+            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog existingBlog = createTestBlog();
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+
+            // When & Then
+            assertThatThrownBy(() -> blogService.editBlog(BLOG_ID, updateBlogDTO, differentUsername))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("You are not authorized to edit this blog");
+
+            verify(blogRepository).findById(BLOG_ID);
+            verify(blogRepository, never()).save(any(Blog.class));
+            verifyNoInteractions(modelMapper);
+        }
+
+        private Blog createUpdatedBlog() {
+            Blog blog = new Blog();
+            blog.setId(BLOG_ID);
+            blog.setTitle(UPDATED_TITLE);
+            blog.setContent(UPDATED_CONTENT);
+            blog.setAuthor(testUser);
+            blog.setCreatedAt(LocalDateTime.now().minusDays(1));
+            blog.setUpdatedAt(LocalDateTime.now());
+            return blog;
+        }
+    }
+
+    // Helper methods
     private User createTestUser() {
         User user = new User();
         user.setUsername(USERNAME);

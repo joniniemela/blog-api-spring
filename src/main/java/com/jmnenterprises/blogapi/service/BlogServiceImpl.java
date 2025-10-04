@@ -57,4 +57,20 @@ public class BlogServiceImpl implements BlogService {
         response.setAuthorUsername(username);
         return response;
     }
+
+    @Override
+    public BlogResponse editBlog(Long id, CreateBlogDTO createBlogDTO, String username) {
+        Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        // Check if the user owns the blog
+        if (blog.getAuthor() == null || !blog.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("You are not authorized to edit this blog");
+        }
+
+        blog.setTitle(createBlogDTO.getTitle());
+        blog.setContent(createBlogDTO.getContent());
+        blog.setUpdatedAt(LocalDateTime.now());
+        Blog save = blogRepository.save(blog);
+        return modelMapper.map(save, BlogResponse.class);
+    }
 }

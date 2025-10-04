@@ -60,4 +60,18 @@ public class BlogController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PutMapping("/{id}")
+    private ResponseEntity<Object> put(@PathVariable Long id, @Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal) {
+        try {
+            String username = principal.getName();
+            BlogResponse response = blogService.editBlog(id, createBlogDTO, username);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 }

@@ -9,8 +9,7 @@ import org.springframework.data.domain.PageRequest;
 
 public interface BlogService {
     CreateBlogResponse createBlog(CreateBlogDTO createBlogDTO, String author);
-
     Page<BlogResponse> findAll(PageRequest pageRequest);
-
     BlogResponse findById(Long id);
+    BlogResponse editBlog(Long id, CreateBlogDTO createBlogDTO, String username);
 }
