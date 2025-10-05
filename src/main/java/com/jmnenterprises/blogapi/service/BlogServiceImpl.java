@@ -8,29 +8,29 @@ import com.jmnenterprises.blogapi.entity.Tag;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.repository.BlogRepository;
-import com.jmnenterprises.blogapi.repository.TagRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BlogServiceImpl implements BlogService {
 
     private final BlogRepository blogRepository;
     private final ModelMapper modelMapper;
     private final AuthRepository authRepository;
-    private final TagRepository tagRepository;
 
-    public BlogServiceImpl(BlogRepository blogRepository, ModelMapper modelMapper, AuthRepository authRepository, TagRepository tagRepository) {
+    public BlogServiceImpl(BlogRepository blogRepository, ModelMapper modelMapper, AuthRepository authRepository) {
         this.blogRepository = blogRepository;
         this.modelMapper = modelMapper;
         this.authRepository = authRepository;
-        this.tagRepository = tagRepository;
     }
 
     @Override
@@ -42,30 +42,23 @@ public class BlogServiceImpl implements BlogService {
         User user = authRepository.findByUsername(author);
         blog.setAuthor(user);
 
-        handleTags(blog, createBlogDTO.getTagNames());
-
         Blog save = blogRepository.save(blog);
-        return modelMapper.map(save, CreateBlogResponse.class);
+        CreateBlogResponse response = modelMapper.map(save, CreateBlogResponse.class);
+        response.setAuthorUsername(author);
+        response.setTagNames(extractTagNames(save));
+        return response;
     }
 
     @Override
     public Page<BlogResponse> findAll(PageRequest pageRequest) {
         Page<Blog> blogs = blogRepository.findAll(pageRequest);
-        return blogs.map(blog -> {
-            BlogResponse response = modelMapper.map(blog, BlogResponse.class);
-            String username = blog.getAuthor() != null ? blog.getAuthor().getUsername() : "unknown";
-            response.setAuthorUsername(username);
-            return response;
-        });
+        return blogs.map(this::mapToBlogResponse);
     }
 
     @Override
     public BlogResponse findById(Long id) {
         Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog not found"));
-        BlogResponse response = modelMapper.map(blog, BlogResponse.class);
-        String username = blog.getAuthor() != null ? blog.getAuthor().getUsername() : "unknown";
-        response.setAuthorUsername(username);
-        return response;
+        return mapToBlogResponse(blog);
     }
 
     @Override
@@ -80,10 +73,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setContent(createBlogDTO.getContent());
         blog.setUpdatedAt(LocalDateTime.now());
 
-        handleTags(blog, createBlogDTO.getTagNames());
-
         Blog save = blogRepository.save(blog);
-        return modelMapper.map(save, BlogResponse.class);
+        return mapToBlogResponse(save);
     }
 
     @Override
@@ -95,19 +86,20 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.deleteById(blogId);
     }
 
-    private void handleTags(Blog blog, Set<String> tagNames) {
-        if (tagNames != null) {
-            if (!tagNames.isEmpty()) {
-                Set<Tag> tags = new HashSet<>();
-                for (String tagName : tagNames) {
-                    Tag tag = tagRepository.findByName(tagName)
-                            .orElseGet(() -> Tag.builder().name(tagName).build());
-                    tags.add(tag);
-                }
-                blog.setTags(tags);
-            } else {
-                blog.setTags(new HashSet<>());
-            }
+    private BlogResponse mapToBlogResponse(Blog blog) {
+        BlogResponse response = modelMapper.map(blog, BlogResponse.class);
+        String username = blog.getAuthor() != null ? blog.getAuthor().getUsername() : "unknown";
+        response.setAuthorUsername(username);
+        response.setTagNames(extractTagNames(blog));
+        return response;
+    }
+
+    private Set<String> extractTagNames(Blog blog) {
+        if (blog.getTags() == null || blog.getTags().isEmpty()) {
+            return new HashSet<>();
         }
+        return blog.getTags().stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
     }
 }

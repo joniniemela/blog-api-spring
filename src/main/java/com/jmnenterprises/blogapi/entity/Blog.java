@@ -1,5 +1,6 @@
 package com.jmnenterprises.blogapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +30,8 @@ public class Blog {
     @ManyToOne(fetch = FetchType.EAGER)
     private User author;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonIgnore
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 

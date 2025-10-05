@@ -7,6 +7,7 @@ import com.jmnenterprises.blogapi.entity.Blog;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.repository.BlogRepository;
+import com.jmnenterprises.blogapi.repository.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +38,8 @@ class BlogServiceTest {
     private static final String USERNAME = "testuser";
     private static final String BLOG_TITLE = "Test Blog Title";
     private static final String BLOG_CONTENT = "Test blog content";
+    private static final String UPDATED_TITLE = "Updated Blog Title";
+    private static final String UPDATED_CONTENT = "Updated blog content";
     private static final int PAGE_NUMBER = 0;
     private static final int PAGE_SIZE = 10;
 
@@ -45,6 +48,9 @@ class BlogServiceTest {
 
     @Mock
     private AuthRepository authRepository;
+
+    @Mock
+    private TagRepository tagRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -61,7 +67,7 @@ class BlogServiceTest {
     void setUp() {
         testUser = createTestUser();
         testBlog = createTestBlog();
-        createBlogDTO = new CreateBlogDTO(BLOG_TITLE, BLOG_CONTENT);
+        createBlogDTO = createBlogDTO(BLOG_TITLE, BLOG_CONTENT);
         pageRequest = PageRequest.of(PAGE_NUMBER, PAGE_SIZE);
     }
 
@@ -109,9 +115,7 @@ class BlogServiceTest {
         void shouldHandleBlogsWithNullAuthorsGracefully() {
             // Given
             Blog blogWithoutAuthor = createTestBlogWithoutAuthor();
-            List<Blog> blogs = List.of(blogWithoutAuthor);
-            Page<Blog> blogPage = new PageImpl<>(blogs, pageRequest, blogs.size());
-
+            Page<Blog> blogPage = new PageImpl<>(List.of(blogWithoutAuthor), pageRequest, 1);
             BlogResponse blogResponse = createBlogResponse(BLOG_ID, BLOG_TITLE, null);
 
             when(blogRepository.findAll(pageRequest)).thenReturn(blogPage);
@@ -199,10 +203,7 @@ class BlogServiceTest {
             Blog savedBlog = createTestBlogWithId();
             CreateBlogResponse expectedResponse = createBlogResponseForCreation();
 
-            when(modelMapper.map(createBlogDTO, Blog.class)).thenReturn(mappedBlog);
-            when(authRepository.findByUsername(USERNAME)).thenReturn(testUser);
-            when(blogRepository.save(any(Blog.class))).thenReturn(savedBlog);
-            when(modelMapper.map(savedBlog, CreateBlogResponse.class)).thenReturn(expectedResponse);
+            setupCreateBlogMocks(mappedBlog, savedBlog, expectedResponse);
 
             // When
             CreateBlogResponse result = blogService.createBlog(createBlogDTO, USERNAME);
@@ -213,10 +214,7 @@ class BlogServiceTest {
             assertThat(result.getContent()).isEqualTo(BLOG_CONTENT);
             assertThat(result.getAuthorUsername()).isEqualTo(USERNAME);
 
-            verify(modelMapper).map(createBlogDTO, Blog.class);
-            verify(authRepository).findByUsername(USERNAME);
-            verify(blogRepository).save(any(Blog.class));
-            verify(modelMapper).map(savedBlog, CreateBlogResponse.class);
+            verifyCreateBlogInteractions(savedBlog);
         }
 
         @Test
@@ -224,6 +222,7 @@ class BlogServiceTest {
         void shouldSetTimestampsWhenCreatingBlog() {
             // Given
             Blog mappedBlog = createTestBlogForCreation();
+
             when(modelMapper.map(createBlogDTO, Blog.class)).thenReturn(mappedBlog);
             when(authRepository.findByUsername(USERNAME)).thenReturn(testUser);
             when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -243,19 +242,15 @@ class BlogServiceTest {
     @DisplayName("Update Blog")
     class UpdateBlogTests {
 
-        private static final String UPDATED_TITLE = "Updated Blog Title";
-        private static final String UPDATED_CONTENT = "Updated blog content";
-
         @Test
         @DisplayName("Should successfully update an existing blog")
         void shouldSuccessfullyUpdateAnExistingBlog() {
             // Given
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
-            Blog existingBlog = createTestBlog();
-            Blog updatedBlog = createUpdatedBlog();
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            Blog updatedBlog = createBlogWithDetails(BLOG_ID, UPDATED_TITLE, UPDATED_CONTENT);
             BlogResponse expectedResponse = createBlogResponse(BLOG_ID, UPDATED_TITLE, USERNAME);
 
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(testBlog));
             when(blogRepository.save(any(Blog.class))).thenReturn(updatedBlog);
             when(modelMapper.map(updatedBlog, BlogResponse.class)).thenReturn(expectedResponse);
 
@@ -277,13 +272,10 @@ class BlogServiceTest {
         @DisplayName("Should update blog timestamps when updating")
         void shouldUpdateBlogTimestampsWhenUpdating() {
             // Given
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
-            Blog existingBlog = createTestBlog();
-            LocalDateTime originalUpdatedAt = existingBlog.getUpdatedAt();
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            LocalDateTime originalUpdatedAt = testBlog.getUpdatedAt();
 
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
-            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+            setupUpdateBlogMocks();
 
             // When
             blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
@@ -299,12 +291,9 @@ class BlogServiceTest {
         @DisplayName("Should update title and content correctly")
         void shouldUpdateTitleAndContentCorrectly() {
             // Given
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
-            Blog existingBlog = createTestBlog();
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
 
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
-            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+            setupUpdateBlogMocks();
 
             // When
             blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
@@ -321,7 +310,7 @@ class BlogServiceTest {
         void shouldThrowExceptionWhenUpdatingNonExistentBlog() {
             // Given
             Long nonExistentId = 999L;
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
 
             when(blogRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
@@ -339,13 +328,10 @@ class BlogServiceTest {
         @DisplayName("Should preserve author when updating blog")
         void shouldPreserveAuthorWhenUpdatingBlog() {
             // Given
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
-            Blog existingBlog = createTestBlog();
-            User originalAuthor = existingBlog.getAuthor();
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
+            User originalAuthor = testBlog.getAuthor();
 
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
-            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
+            setupUpdateBlogMocks();
 
             // When
             blogService.editBlog(BLOG_ID, updateBlogDTO, USERNAME);
@@ -362,10 +348,9 @@ class BlogServiceTest {
         void shouldThrowExceptionWhenUserDoesNotOwnBlog() {
             // Given
             String differentUsername = "differentuser";
-            CreateBlogDTO updateBlogDTO = new CreateBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
-            Blog existingBlog = createTestBlog();
+            CreateBlogDTO updateBlogDTO = createBlogDTO(UPDATED_TITLE, UPDATED_CONTENT);
 
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(testBlog));
 
             // When & Then
             assertThatThrownBy(() -> blogService.editBlog(BLOG_ID, updateBlogDTO, differentUsername))
@@ -377,15 +362,10 @@ class BlogServiceTest {
             verifyNoInteractions(modelMapper);
         }
 
-        private Blog createUpdatedBlog() {
-            Blog blog = new Blog();
-            blog.setId(BLOG_ID);
-            blog.setTitle(UPDATED_TITLE);
-            blog.setContent(UPDATED_CONTENT);
-            blog.setAuthor(testUser);
-            blog.setCreatedAt(LocalDateTime.now().minusDays(1));
-            blog.setUpdatedAt(LocalDateTime.now());
-            return blog;
+        private void setupUpdateBlogMocks() {
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(testBlog));
+            when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
         }
     }
 
@@ -397,9 +377,7 @@ class BlogServiceTest {
         @DisplayName("Should successfully delete an existing blog")
         void shouldDeleteAnExistingBlog() {
             // Given
-            Blog existingBlog = createTestBlog();
-
-            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(testBlog));
 
             // When
             blogService.deleteBlog(BLOG_ID, USERNAME);
@@ -408,9 +386,46 @@ class BlogServiceTest {
             verify(blogRepository).findById(BLOG_ID);
             verify(blogRepository).deleteById(BLOG_ID);
         }
+
+        @Test
+        @DisplayName("Should throw exception when deleting non-existent blog")
+        void shouldThrowExceptionWhenDeletingNonExistentBlog() {
+            // Given
+            Long nonExistentId = 999L;
+            when(blogRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> blogService.deleteBlog(nonExistentId, USERNAME))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("Blog not found");
+
+            verify(blogRepository).findById(nonExistentId);
+            verify(blogRepository, never()).deleteById(anyLong());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when user does not own the blog")
+        void shouldThrowExceptionWhenUserDoesNotOwnBlogForDeletion() {
+            // Given
+            String differentUsername = "differentuser";
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(testBlog));
+
+            // When & Then
+            assertThatThrownBy(() -> blogService.deleteBlog(BLOG_ID, differentUsername))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessage("You are not authorized to delete this blog");
+
+            verify(blogRepository).findById(BLOG_ID);
+            verify(blogRepository, never()).deleteById(anyLong());
+        }
     }
 
     // Helper methods
+    private CreateBlogDTO createBlogDTO(String title, String content) {
+        return new CreateBlogDTO(title, content, null);
+    }
+
     private User createTestUser() {
         User user = new User();
         user.setUsername(USERNAME);
@@ -418,10 +433,14 @@ class BlogServiceTest {
     }
 
     private Blog createTestBlog() {
+        return createBlogWithDetails(BLOG_ID, BLOG_TITLE, BLOG_CONTENT);
+    }
+
+    private Blog createBlogWithDetails(Long id, String title, String content) {
         Blog blog = new Blog();
-        blog.setId(BLOG_ID);
-        blog.setTitle(BLOG_TITLE);
-        blog.setContent(BLOG_CONTENT);
+        blog.setId(id);
+        blog.setTitle(title);
+        blog.setContent(content);
         blog.setAuthor(testUser);
         blog.setCreatedAt(LocalDateTime.now());
         blog.setUpdatedAt(LocalDateTime.now());
@@ -429,12 +448,7 @@ class BlogServiceTest {
     }
 
     private Blog createAnotherTestBlog() {
-        Blog blog = new Blog();
-        blog.setId(2L);
-        blog.setTitle("Another Title");
-        blog.setContent("Another content");
-        blog.setAuthor(testUser);
-        return blog;
+        return createBlogWithDetails(2L, "Another Title", "Another content");
     }
 
     private Blog createTestBlogWithoutAuthor() {
@@ -476,5 +490,19 @@ class BlogServiceTest {
         response.setContent(BLOG_CONTENT);
         response.setAuthorUsername(USERNAME);
         return response;
+    }
+
+    private void setupCreateBlogMocks(Blog mappedBlog, Blog savedBlog, CreateBlogResponse expectedResponse) {
+        when(modelMapper.map(createBlogDTO, Blog.class)).thenReturn(mappedBlog);
+        when(authRepository.findByUsername(USERNAME)).thenReturn(testUser);
+        when(blogRepository.save(any(Blog.class))).thenReturn(savedBlog);
+        when(modelMapper.map(savedBlog, CreateBlogResponse.class)).thenReturn(expectedResponse);
+    }
+
+    private void verifyCreateBlogInteractions(Blog savedBlog) {
+        verify(modelMapper).map(createBlogDTO, Blog.class);
+        verify(authRepository).findByUsername(USERNAME);
+        verify(blogRepository).save(any(Blog.class));
+        verify(modelMapper).map(savedBlog, CreateBlogResponse.class);
     }
 }

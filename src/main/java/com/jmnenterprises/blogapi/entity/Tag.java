@@ -1,5 +1,6 @@
 package com.jmnenterprises.blogapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class Tag {
     private String name;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnore
     @Builder.Default
     private Set<Blog> blogs = new HashSet<>();
 }
