@@ -78,12 +78,12 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public void deleteBlog(Long blogId, String username) {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+    public void deleteBlog(Long id, String username) {
+        Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog not found"));
         if (blog.getAuthor() == null || !blog.getAuthor().getUsername().equals(username)) {
             throw new RuntimeException("You are not authorized to delete this blog");
         }
-        blogRepository.deleteById(blogId);
+        blogRepository.deleteById(id);
     }
 
     private BlogResponse mapToBlogResponse(Blog blog) {
