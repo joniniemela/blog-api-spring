@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,6 +28,10 @@ public class Blog {
 
     @ManyToOne(fetch = FetchType.EAGER)
     private User author;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @Builder.Default
+    private Set<Tag> tags = new HashSet<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

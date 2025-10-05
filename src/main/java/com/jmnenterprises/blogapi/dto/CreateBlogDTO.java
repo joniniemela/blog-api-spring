@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -15,5 +17,6 @@ public class CreateBlogDTO {
 
     @NotBlank(message = "Content is required")
     private String content;
-}
 
+    private Set<String> tagNames;
+}

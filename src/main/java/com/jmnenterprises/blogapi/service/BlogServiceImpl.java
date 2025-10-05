@@ -4,15 +4,19 @@ import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
 import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.entity.Blog;
+import com.jmnenterprises.blogapi.entity.Tag;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.repository.BlogRepository;
+import com.jmnenterprises.blogapi.repository.TagRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -20,11 +24,13 @@ public class BlogServiceImpl implements BlogService {
     private final BlogRepository blogRepository;
     private final ModelMapper modelMapper;
     private final AuthRepository authRepository;
+    private final TagRepository tagRepository;
 
-    public BlogServiceImpl(BlogRepository blogRepository, ModelMapper modelMapper, AuthRepository authRepository) {
+    public BlogServiceImpl(BlogRepository blogRepository, ModelMapper modelMapper, AuthRepository authRepository, TagRepository tagRepository) {
         this.blogRepository = blogRepository;
         this.modelMapper = modelMapper;
         this.authRepository = authRepository;
+        this.tagRepository = tagRepository;
     }
 
     @Override
@@ -32,8 +38,12 @@ public class BlogServiceImpl implements BlogService {
         Blog blog = modelMapper.map(createBlogDTO, Blog.class);
         blog.setCreatedAt(LocalDateTime.now());
         blog.setUpdatedAt(LocalDateTime.now());
+
         User user = authRepository.findByUsername(author);
         blog.setAuthor(user);
+
+        handleTags(blog, createBlogDTO.getTagNames());
+
         Blog save = blogRepository.save(blog);
         return modelMapper.map(save, CreateBlogResponse.class);
     }
@@ -62,7 +72,6 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponse editBlog(Long id, CreateBlogDTO createBlogDTO, String username) {
         Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        // Check if the user owns the blog
         if (blog.getAuthor() == null || !blog.getAuthor().getUsername().equals(username)) {
             throw new RuntimeException("You are not authorized to edit this blog");
         }
@@ -70,6 +79,9 @@ public class BlogServiceImpl implements BlogService {
         blog.setTitle(createBlogDTO.getTitle());
         blog.setContent(createBlogDTO.getContent());
         blog.setUpdatedAt(LocalDateTime.now());
+
+        handleTags(blog, createBlogDTO.getTagNames());
+
         Blog save = blogRepository.save(blog);
         return modelMapper.map(save, BlogResponse.class);
     }
@@ -81,5 +93,21 @@ public class BlogServiceImpl implements BlogService {
             throw new RuntimeException("You are not authorized to delete this blog");
         }
         blogRepository.deleteById(blogId);
+    }
+
+    private void handleTags(Blog blog, Set<String> tagNames) {
+        if (tagNames != null) {
+            if (!tagNames.isEmpty()) {
+                Set<Tag> tags = new HashSet<>();
+                for (String tagName : tagNames) {
+                    Tag tag = tagRepository.findByName(tagName)
+                            .orElseGet(() -> Tag.builder().name(tagName).build());
+                    tags.add(tag);
+                }
+                blog.setTags(tags);
+            } else {
+                blog.setTags(new HashSet<>());
+            }
+        }
     }
 }
