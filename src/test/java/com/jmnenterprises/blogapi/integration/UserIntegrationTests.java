@@ -5,6 +5,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jmnenterprises.blogapi.dto.LoginDTO;
 import com.jmnenterprises.blogapi.dto.RegisterDTO;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,7 @@ public class UserIntegrationTests {
 
 
     @Test
+    @DisplayName("User can register")
     void userRegistrationTest() {
         RegisterDTO registerRequest = new RegisterDTO("newuser", "Password123!", "newuser@example.com");
 
@@ -37,6 +39,7 @@ public class UserIntegrationTests {
     }
 
     @Test
+    @DisplayName("User can login")
     void userLoginTest() {
 
         RegisterDTO registerRequest = new RegisterDTO("testloginuser", "Password123!", "test@example.com");
@@ -58,6 +61,7 @@ public class UserIntegrationTests {
     }
 
     @Test
+    @DisplayName("User cannot login with wrong credentials")
     void cannotLoginWithWrongCredentials() {
 
         RegisterDTO registerRequest = new RegisterDTO("testloginuser123", "Password123!", "test@example.com");

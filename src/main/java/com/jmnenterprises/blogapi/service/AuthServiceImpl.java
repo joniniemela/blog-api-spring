@@ -7,6 +7,7 @@ import com.jmnenterprises.blogapi.dto.RegisterResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.security.JWTUtil;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public RegisterResponse register(RegisterDTO registerDTO) {
+    public RegisterResponse register(@NotNull RegisterDTO registerDTO) {
         if(authRepository.existsByEmail(registerDTO.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
@@ -56,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse login(LoginDTO loginDTO) {
+    public LoginResponse login(@NotNull LoginDTO loginDTO) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
         );
