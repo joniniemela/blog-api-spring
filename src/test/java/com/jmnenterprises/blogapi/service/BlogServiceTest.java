@@ -2,7 +2,6 @@ package com.jmnenterprises.blogapi.service;
 
 import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
-import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.entity.Blog;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
@@ -201,12 +200,12 @@ class BlogServiceTest {
             // Given
             Blog mappedBlog = createTestBlogForCreation();
             Blog savedBlog = createTestBlogWithId();
-            CreateBlogResponse expectedResponse = createBlogResponseForCreation();
+            BlogResponse expectedResponse = createBlogResponseForCreation();
 
             setupCreateBlogMocks(mappedBlog, savedBlog, expectedResponse);
 
             // When
-            CreateBlogResponse result = blogService.createBlog(createBlogDTO, USERNAME);
+            BlogResponse result = blogService.createBlog(createBlogDTO, USERNAME);
 
             // Then
             assertThat(result).isNotNull();
@@ -226,7 +225,7 @@ class BlogServiceTest {
             when(modelMapper.map(createBlogDTO, Blog.class)).thenReturn(mappedBlog);
             when(authRepository.findByUsername(USERNAME)).thenReturn(testUser);
             when(blogRepository.save(any(Blog.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(modelMapper.map(any(Blog.class), eq(CreateBlogResponse.class))).thenReturn(new CreateBlogResponse());
+            when(modelMapper.map(any(Blog.class), eq(BlogResponse.class))).thenReturn(new BlogResponse());
 
             // When
             blogService.createBlog(createBlogDTO, USERNAME);
@@ -484,25 +483,25 @@ class BlogServiceTest {
         return response;
     }
 
-    private CreateBlogResponse createBlogResponseForCreation() {
-        CreateBlogResponse response = new CreateBlogResponse();
+    private BlogResponse createBlogResponseForCreation() {
+        BlogResponse response = new BlogResponse();
         response.setTitle(BLOG_TITLE);
         response.setContent(BLOG_CONTENT);
         response.setAuthorUsername(USERNAME);
         return response;
     }
 
-    private void setupCreateBlogMocks(Blog mappedBlog, Blog savedBlog, CreateBlogResponse expectedResponse) {
+    private void setupCreateBlogMocks(Blog mappedBlog, Blog savedBlog, BlogResponse expectedResponse) {
         when(modelMapper.map(createBlogDTO, Blog.class)).thenReturn(mappedBlog);
         when(authRepository.findByUsername(USERNAME)).thenReturn(testUser);
         when(blogRepository.save(any(Blog.class))).thenReturn(savedBlog);
-        when(modelMapper.map(savedBlog, CreateBlogResponse.class)).thenReturn(expectedResponse);
+        when(modelMapper.map(savedBlog, BlogResponse.class)).thenReturn(expectedResponse);
     }
 
     private void verifyCreateBlogInteractions(Blog savedBlog) {
         verify(modelMapper).map(createBlogDTO, Blog.class);
         verify(authRepository).findByUsername(USERNAME);
         verify(blogRepository).save(any(Blog.class));
-        verify(modelMapper).map(savedBlog, CreateBlogResponse.class);
+        verify(modelMapper).map(savedBlog, BlogResponse.class);
     }
 }

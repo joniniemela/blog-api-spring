@@ -2,7 +2,6 @@ package com.jmnenterprises.blogapi.controller;
 
 import com.jmnenterprises.blogapi.dto.BlogResponse;
 import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
-import com.jmnenterprises.blogapi.dto.CreateBlogResponse;
 import com.jmnenterprises.blogapi.service.BlogService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -54,7 +53,7 @@ public class BlogController {
     private ResponseEntity<Object> post(@Valid @RequestBody CreateBlogDTO createBlogDTO, Principal principal) {
         try {
             String author = principal.getName();
-            CreateBlogResponse response = blogService.createBlog(createBlogDTO, author);
+            BlogResponse response = blogService.createBlog(createBlogDTO, author);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
