@@ -389,6 +389,27 @@ class BlogServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Delete Blog")
+    class DeleteBlogTests {
+
+        @Test
+        @DisplayName("Should successfully delete an existing blog")
+        void shouldDeleteAnExistingBlog() {
+            // Given
+            Blog existingBlog = createTestBlog();
+
+            when(blogRepository.findById(BLOG_ID)).thenReturn(Optional.of(existingBlog));
+
+            // When
+            blogService.deleteBlog(BLOG_ID, USERNAME);
+
+            // Then
+            verify(blogRepository).findById(BLOG_ID);
+            verify(blogRepository).deleteById(BLOG_ID);
+        }
+    }
+
     // Helper methods
     private User createTestUser() {
         User user = new User();

@@ -12,4 +12,5 @@ public interface BlogService {
     Page<BlogResponse> findAll(PageRequest pageRequest);
     BlogResponse findById(Long id);
     BlogResponse editBlog(Long id, CreateBlogDTO createBlogDTO, String username);
+    void deleteBlog(Long blogId, String username);
 }

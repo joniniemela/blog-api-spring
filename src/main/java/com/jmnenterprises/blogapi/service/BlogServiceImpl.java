@@ -73,4 +73,13 @@ public class BlogServiceImpl implements BlogService {
         Blog save = blogRepository.save(blog);
         return modelMapper.map(save, BlogResponse.class);
     }
+
+    @Override
+    public void deleteBlog(Long blogId, String username) {
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        if (blog.getAuthor() == null || !blog.getAuthor().getUsername().equals(username)) {
+            throw new RuntimeException("You are not authorized to delete this blog");
+        }
+        blogRepository.deleteById(blogId);
+    }
 }

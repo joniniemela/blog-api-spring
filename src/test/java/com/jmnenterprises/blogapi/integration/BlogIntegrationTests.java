@@ -271,4 +271,110 @@ public class BlogIntegrationTests {
         assertThat(getCtx.read("$.content", String.class)).isEqualTo("Original Content");
     }
 
+    @Test
+    @DisplayName("User can delete a blog user owns")
+    void userCanDeleteABlogUserOwns() {
+
+        CreateBlogDTO newBlog = new CreateBlogDTO("Original Title", "Original Content");
+        HttpEntity<CreateBlogDTO> createRequestEntity = new HttpEntity<>(newBlog, entity.getHeaders());
+
+        ResponseEntity<String> createResponse = restTemplate.exchange(
+                "/api/blog/create",
+                HttpMethod.POST,
+                createRequestEntity,
+                String.class
+        );
+
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Extract the blog ID from the create response
+        DocumentContext ctx = JsonPath.parse(createResponse.getBody());
+        Integer blogId = ctx.read("$.id");
+        assertThat(blogId).isNotNull();
+
+        // Delete the blog
+        ResponseEntity<String> deleteResponse = restTemplate.exchange(
+                "/api/blog/" + blogId,
+                HttpMethod.DELETE,
+                entity,
+                String.class
+        );
+
+        // Verify deletion was successful
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+        // Verify the blog no longer exists
+        ResponseEntity<String> getResponse = restTemplate.exchange(
+                "/api/blog/" + blogId,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("User cannot delete a blog user does not own")
+    void userCannotDeleteABlogUserDoesNotOwn() {
+        // First user creates a blog
+        CreateBlogDTO newBlog = new CreateBlogDTO("Original Title", "Original Content");
+        HttpEntity<CreateBlogDTO> createRequestEntity = new HttpEntity<>(newBlog, entity.getHeaders());
+
+        ResponseEntity<String> createResponse = restTemplate.exchange(
+                "/api/blog/create",
+                HttpMethod.POST,
+                createRequestEntity,
+                String.class
+        );
+
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        // Extract the blog ID
+        DocumentContext ctx = JsonPath.parse(createResponse.getBody());
+        Integer blogId = ctx.read("$.id");
+        assertThat(blogId).isNotNull();
+
+        // Register and login as a different user
+        RegisterDTO anotherUserRegister = new RegisterDTO("anotheruser", "Password123!", "another@example.com");
+        restTemplate.postForEntity("/api/auth/register", anotherUserRegister, String.class);
+
+        LoginDTO anotherUserLogin = new LoginDTO("anotheruser", "Password123!");
+        ResponseEntity<String> anotherUserLoginResponse = restTemplate.postForEntity("/api/auth/login", anotherUserLogin, String.class);
+
+        assertThat(anotherUserLoginResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        DocumentContext anotherUserCtx = JsonPath.parse(anotherUserLoginResponse.getBody());
+        String anotherUserToken = anotherUserCtx.read("$.data.accessToken");
+
+        HttpHeaders anotherUserHeaders = new HttpHeaders();
+        anotherUserHeaders.setBearerAuth(anotherUserToken);
+        anotherUserHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+        HttpEntity<Void> anotherUserEntity = new HttpEntity<>(anotherUserHeaders);
+
+        // Try to delete the blog as the second user
+        ResponseEntity<String> deleteResponse = restTemplate.exchange(
+                "/api/blog/" + blogId,
+                HttpMethod.DELETE,
+                anotherUserEntity,
+                String.class
+        );
+
+        // Should return forbidden or unauthorized
+        assertThat(deleteResponse.getStatusCode()).isIn(HttpStatus.FORBIDDEN, HttpStatus.UNAUTHORIZED);
+
+        // Verify the blog still exists by fetching it with the original user
+        ResponseEntity<String> getResponse = restTemplate.exchange(
+                "/api/blog/" + blogId,
+                HttpMethod.GET,
+                entity,
+                String.class
+        );
+
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        DocumentContext getCtx = JsonPath.parse(getResponse.getBody());
+        assertThat(getCtx.read("$.title", String.class)).isEqualTo("Original Title");
+        assertThat(getCtx.read("$.content", String.class)).isEqualTo("Original Content");
+    }
+
 }
