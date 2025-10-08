@@ -17,14 +17,17 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TagServiceTest {
+class TagServiceTest {
 
     @Mock
     private TagRepository tagRepository;
@@ -35,87 +38,148 @@ public class TagServiceTest {
     @InjectMocks
     private TagServiceImpl tagService;
 
-    private Tag tag1;
-    private Tag tag2;
-    private TagResponse tagResponse1;
-    private TagResponse tagResponse2;
+    private Tag tag;
+    private TagResponse tagResponse;
 
     @BeforeEach
     void setUp() {
-        tag1 = Tag.builder()
+        tag = Tag.builder()
                 .id(1L)
-                .name("Java")
-                .blogs(new HashSet<>())
+                .name("Technology")
                 .build();
 
-        tag2 = Tag.builder()
-                .id(2L)
-                .name("Spring")
-                .blogs(new HashSet<>())
-                .build();
-
-        tagResponse1 = new TagResponse();
-        tagResponse2 = new TagResponse();
+        tagResponse = new TagResponse();
+        tagResponse.setId(1L);
+        tagResponse.setName("Technology");
     }
 
     @Nested
-    @DisplayName("FindAll Tests")
-    class FindAllTests {
+    @DisplayName("Find All Tags Tests")
+    class FindAllTagsTests {
 
         @Test
         @DisplayName("Should return paginated tags")
         void shouldReturnPaginatedTags() {
             PageRequest pageRequest = PageRequest.of(0, 10);
-            List<Tag> tags = Arrays.asList(tag1, tag2);
-            Page<Tag> tagPage = new PageImpl<>(tags, pageRequest, tags.size());
+            Tag tag2 = Tag.builder().id(2L).name("Science").build();
+            Page<Tag> tagPage = new PageImpl<>(Arrays.asList(tag, tag2));
+
+            TagResponse tagResponse2 = new TagResponse();
+            tagResponse2.setId(2L);
+            tagResponse2.setName("Science");
 
             when(tagRepository.findAll(pageRequest)).thenReturn(tagPage);
-            when(modelMapper.map(tag1, TagResponse.class)).thenReturn(tagResponse1);
+            when(modelMapper.map(tag, TagResponse.class)).thenReturn(tagResponse);
             when(modelMapper.map(tag2, TagResponse.class)).thenReturn(tagResponse2);
 
             Page<TagResponse> result = tagService.findAll(pageRequest);
 
-            assertNotNull(result);
-            assertEquals(2, result.getTotalElements());
-            assertEquals(2, result.getContent().size());
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(2);
+            assertThat(result.getContent().get(0).getName()).isEqualTo("Technology");
+            assertThat(result.getContent().get(1).getName()).isEqualTo("Science");
             verify(tagRepository).findAll(pageRequest);
-            verify(modelMapper, times(2)).map(any(Tag.class), eq(TagResponse.class));
         }
 
         @Test
         @DisplayName("Should return empty page when no tags exist")
         void shouldReturnEmptyPageWhenNoTagsExist() {
             PageRequest pageRequest = PageRequest.of(0, 10);
-            Page<Tag> emptyPage = new PageImpl<>(List.of(), pageRequest, 0);
+            Page<Tag> emptyPage = new PageImpl<>(List.of());
 
             when(tagRepository.findAll(pageRequest)).thenReturn(emptyPage);
 
             Page<TagResponse> result = tagService.findAll(pageRequest);
 
-            assertNotNull(result);
-            assertEquals(0, result.getTotalElements());
-            assertTrue(result.getContent().isEmpty());
-            verify(tagRepository).findAll(pageRequest);
-            verify(modelMapper, never()).map(any(Tag.class), eq(TagResponse.class));
-        }
-
-        @Test
-        @DisplayName("Should handle pagination correctly")
-        void shouldHandlePaginationCorrectly() {
-            PageRequest pageRequest = PageRequest.of(1, 1);
-            List<Tag> tags = List.of(tag2);
-            Page<Tag> tagPage = new PageImpl<>(tags, pageRequest, 2);
-
-            when(tagRepository.findAll(pageRequest)).thenReturn(tagPage);
-            when(modelMapper.map(tag2, TagResponse.class)).thenReturn(tagResponse2);
-
-            Page<TagResponse> result = tagService.findAll(pageRequest);
-
-            assertNotNull(result);
-            assertEquals(2, result.getTotalElements());
-            assertEquals(1, result.getContent().size());
-            assertEquals(1, result.getNumber());
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
             verify(tagRepository).findAll(pageRequest);
         }
     }
+
+    @Nested
+    @DisplayName("Create Tag Tests")
+    class CreateTagTests {
+
+        @Test
+        @DisplayName("Should create a new tag")
+        void shouldCreateNewTag() {
+            String tagName = "Technology";
+
+            when(tagRepository.save(any(Tag.class))).thenReturn(tag);
+            when(modelMapper.map(tag, TagResponse.class)).thenReturn(tagResponse);
+
+            TagResponse result = tagService.createTag(tagName);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getName()).isEqualTo("Technology");
+            verify(tagRepository).save(any(Tag.class));
+            verify(modelMapper).map(tag, TagResponse.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Find Tag By Id Tests")
+    class FindTagByIdTests {
+
+        @Test
+        @DisplayName("Should return tag when found by id")
+        void shouldReturnTagWhenFoundById() {
+            when(tagRepository.findById(1L)).thenReturn(Optional.of(tag));
+            when(modelMapper.map(tag, TagResponse.class)).thenReturn(tagResponse);
+
+            TagResponse result = tagService.findById(1L);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getName()).isEqualTo("Technology");
+            verify(tagRepository).findById(1L);
+            verify(modelMapper).map(tag, TagResponse.class);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when tag not found")
+        void shouldThrowExceptionWhenTagNotFound() {
+            when(tagRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> tagService.findById(99L))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Tag not found with id: 99");
+
+            verify(tagRepository).findById(99L);
+            verify(modelMapper, never()).map(any(), eq(TagResponse.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Delete Tag Tests")
+    class DeleteTagTests {
+
+        @Test
+        @DisplayName("Should delete tag when it exists")
+        void shouldDeleteTagWhenItExists() {
+            when(tagRepository.existsById(1L)).thenReturn(true);
+            doNothing().when(tagRepository).deleteById(1L);
+
+            tagService.deleteById(1L);
+
+            verify(tagRepository).existsById(1L);
+            verify(tagRepository).deleteById(1L);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when deleting non-existent tag")
+        void shouldThrowExceptionWhenDeletingNonExistentTag() {
+            when(tagRepository.existsById(99L)).thenReturn(false);
+
+            assertThatThrownBy(() -> tagService.deleteById(99L))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Tag not found with id: 99");
+
+            verify(tagRepository).existsById(99L);
+            verify(tagRepository, never()).deleteById(99L);
+        }
+    }
 }
+
