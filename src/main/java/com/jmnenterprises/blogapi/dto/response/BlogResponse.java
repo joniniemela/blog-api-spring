@@ -1,22 +1,21 @@
-package com.jmnenterprises.blogapi.dto;
+package com.jmnenterprises.blogapi.dto.response;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CreateBlogDTO {
-
-    @NotBlank(message = "Title is required")
+public class BlogResponse {
+    private Long id;
     private String title;
-
-    @NotBlank(message = "Content is required")
     private String content;
-
     private Set<String> tagNames;
+    private String authorUsername;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

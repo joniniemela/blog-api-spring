@@ -2,8 +2,8 @@ package com.jmnenterprises.blogapi.integration;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import com.jmnenterprises.blogapi.dto.LoginDTO;
-import com.jmnenterprises.blogapi.dto.RegisterDTO;
+import com.jmnenterprises.blogapi.dto.request.LoginDTO;
+import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

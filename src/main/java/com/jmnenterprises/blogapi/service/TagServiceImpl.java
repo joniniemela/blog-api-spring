@@ -1,6 +1,6 @@
 package com.jmnenterprises.blogapi.service;
 
-import com.jmnenterprises.blogapi.dto.TagResponse;
+import com.jmnenterprises.blogapi.dto.response.TagResponse;
 import com.jmnenterprises.blogapi.entity.Tag;
 import com.jmnenterprises.blogapi.repository.TagRepository;
 import org.modelmapper.ModelMapper;

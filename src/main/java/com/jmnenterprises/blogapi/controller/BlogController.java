@@ -1,7 +1,7 @@
 package com.jmnenterprises.blogapi.controller;
 
-import com.jmnenterprises.blogapi.dto.BlogResponse;
-import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
+import com.jmnenterprises.blogapi.dto.response.BlogResponse;
+import com.jmnenterprises.blogapi.dto.request.CreateBlogDTO;
 import com.jmnenterprises.blogapi.service.BlogService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;

@@ -1,7 +1,7 @@
 package com.jmnenterprises.blogapi.service;
 
-import com.jmnenterprises.blogapi.dto.BlogResponse;
-import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
+import com.jmnenterprises.blogapi.dto.response.BlogResponse;
+import com.jmnenterprises.blogapi.dto.request.CreateBlogDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 

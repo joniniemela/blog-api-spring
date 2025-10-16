@@ -3,9 +3,9 @@ package com.jmnenterprises.blogapi.integration;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import com.jmnenterprises.blogapi.dto.CreateBlogDTO;
-import com.jmnenterprises.blogapi.dto.LoginDTO;
-import com.jmnenterprises.blogapi.dto.RegisterDTO;
+import com.jmnenterprises.blogapi.dto.request.CreateBlogDTO;
+import com.jmnenterprises.blogapi.dto.request.LoginDTO;
+import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

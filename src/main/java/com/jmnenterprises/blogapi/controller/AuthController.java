@@ -1,9 +1,9 @@
 package com.jmnenterprises.blogapi.controller;
 
-import com.jmnenterprises.blogapi.dto.LoginDTO;
-import com.jmnenterprises.blogapi.dto.LoginResponse;
-import com.jmnenterprises.blogapi.dto.RegisterDTO;
-import com.jmnenterprises.blogapi.dto.RegisterResponse;
+import com.jmnenterprises.blogapi.dto.request.LoginDTO;
+import com.jmnenterprises.blogapi.dto.response.LoginResponse;
+import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
+import com.jmnenterprises.blogapi.dto.response.RegisterResponse;
 import com.jmnenterprises.blogapi.service.AuthService;
 import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;

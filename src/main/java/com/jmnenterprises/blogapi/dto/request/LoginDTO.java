@@ -1,4 +1,4 @@
-package com.jmnenterprises.blogapi.dto;
+package com.jmnenterprises.blogapi.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

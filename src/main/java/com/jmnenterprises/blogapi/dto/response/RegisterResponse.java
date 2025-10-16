@@ -1,4 +1,4 @@
-package com.jmnenterprises.blogapi.dto;
+package com.jmnenterprises.blogapi.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

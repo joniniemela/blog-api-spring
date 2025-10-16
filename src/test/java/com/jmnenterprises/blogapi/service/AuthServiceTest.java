@@ -1,9 +1,9 @@
 package com.jmnenterprises.blogapi.service;
 
-import com.jmnenterprises.blogapi.dto.LoginDTO;
-import com.jmnenterprises.blogapi.dto.LoginResponse;
-import com.jmnenterprises.blogapi.dto.RegisterDTO;
-import com.jmnenterprises.blogapi.dto.RegisterResponse;
+import com.jmnenterprises.blogapi.dto.request.LoginDTO;
+import com.jmnenterprises.blogapi.dto.response.LoginResponse;
+import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
+import com.jmnenterprises.blogapi.dto.response.RegisterResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.security.JWTUtil;

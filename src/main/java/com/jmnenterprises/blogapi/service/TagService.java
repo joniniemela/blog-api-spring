@@ -1,6 +1,6 @@
 package com.jmnenterprises.blogapi.service;
 
-import com.jmnenterprises.blogapi.dto.TagResponse;
+import com.jmnenterprises.blogapi.dto.response.TagResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
