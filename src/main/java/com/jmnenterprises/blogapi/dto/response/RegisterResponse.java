@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 public class RegisterResponse {
-    private Long id;
     private String username;
     private String email;
     private LocalDateTime createdAt;
