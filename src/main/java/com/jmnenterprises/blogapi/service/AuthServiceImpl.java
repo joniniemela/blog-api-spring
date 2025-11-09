@@ -4,6 +4,7 @@ import com.jmnenterprises.blogapi.dto.request.LoginDTO;
 import com.jmnenterprises.blogapi.dto.response.LoginResponse;
 import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
 import com.jmnenterprises.blogapi.dto.response.RegisterResponse;
+import com.jmnenterprises.blogapi.dto.response.UserResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.security.JWTUtil;
@@ -67,6 +68,15 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(jwt)
                 .tokenType("Bearer")
                 .build();
+    }
+
+    @Override
+    public UserResponse getCurrentUser(String username) {
+        User user = authRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return modelMapper.map(user, UserResponse.class);
     }
 
 }

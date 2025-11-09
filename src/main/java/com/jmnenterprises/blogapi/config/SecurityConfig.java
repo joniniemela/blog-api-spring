@@ -36,7 +36,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(request -> request
                         .requestMatchers(AppConstants.PUBLIC_URLS).permitAll()
-                        .requestMatchers("/api/**:").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/error").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/api/**").hasAnyRole("USER","ADMIN")
                         .anyRequest()
                         .authenticated())
                 .csrf(AbstractHttpConfigurer::disable)

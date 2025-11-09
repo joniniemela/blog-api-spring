@@ -56,7 +56,7 @@ public class UserIntegrationTests {
 
 
         DocumentContext documentContext = JsonPath.parse(loginResponse.getBody());
-        String tokenType = documentContext.read("$.data.tokenType");
+        String tokenType = documentContext.read("$.tokenType");
         Assertions.assertThat(tokenType).isEqualTo("Bearer");
     }
 

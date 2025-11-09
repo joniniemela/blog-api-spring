@@ -157,10 +157,10 @@ public class BlogIntegrationTests {
         assertThat(loginResponse.getBody()).isNotBlank();
 
         DocumentContext ctx = JsonPath.parse(loginResponse.getBody());
-        String tokenType = ctx.read("$.data.tokenType");
+        String tokenType = ctx.read("$.tokenType");
         assertThat(tokenType).isEqualTo("Bearer");
 
-        String jwtToken = ctx.read("$.data.accessToken");
+        String jwtToken = ctx.read("$.accessToken");
         assertThat(jwtToken).isNotBlank();
 
         HttpHeaders headers = new HttpHeaders();

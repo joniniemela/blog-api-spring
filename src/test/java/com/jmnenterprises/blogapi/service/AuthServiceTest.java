@@ -4,6 +4,7 @@ import com.jmnenterprises.blogapi.dto.request.LoginDTO;
 import com.jmnenterprises.blogapi.dto.response.LoginResponse;
 import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
 import com.jmnenterprises.blogapi.dto.response.RegisterResponse;
+import com.jmnenterprises.blogapi.dto.response.UserResponse;
 import com.jmnenterprises.blogapi.entity.User;
 import com.jmnenterprises.blogapi.repository.AuthRepository;
 import com.jmnenterprises.blogapi.security.JWTUtil;
@@ -83,6 +84,25 @@ public class AuthServiceTest {
 
             assertEquals("mocked-access-token", result.getAccessToken());
             assertEquals("Bearer", result.getTokenType());
+        }
+
+        @DisplayName("User can get own user info")
+        @Test
+        void userCanGetOwnUserInfo() {
+            String username = "testloginuser123";
+            User user = new User();
+            user.setUsername(username);
+            UserResponse userResponse = new UserResponse();
+            userResponse.setUsername(username);
+
+            when(authRepository.findByUsername(username)).thenReturn(user);
+            when(modelMapper.map(user, UserResponse.class)).thenReturn(userResponse);
+
+            UserResponse result = authService.getCurrentUser(username);
+
+            assertEquals(username, result.getUsername());
+            verify(authRepository).findByUsername(username);
+            verify(modelMapper).map(user, UserResponse.class);
         }
 
     }

@@ -4,20 +4,17 @@ import com.jmnenterprises.blogapi.dto.request.LoginDTO;
 import com.jmnenterprises.blogapi.dto.response.LoginResponse;
 import com.jmnenterprises.blogapi.dto.request.RegisterDTO;
 import com.jmnenterprises.blogapi.dto.response.RegisterResponse;
+import com.jmnenterprises.blogapi.dto.response.UserResponse;
 import com.jmnenterprises.blogapi.service.AuthService;
-import com.jmnenterprises.blogapi.utils.ResponseHandler;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
 
     private final AuthService authService;
 
@@ -29,9 +26,9 @@ public class AuthController {
     public ResponseEntity<Object> register(@Valid @RequestBody RegisterDTO registerDTO) {
         try {
             RegisterResponse registerResponse = authService.register(registerDTO);
-            return ResponseHandler.generateResponse("User registered successfully", HttpStatus.OK, registerResponse);
+            return ResponseEntity.ok(registerResponse);
         } catch (RuntimeException e) {
-            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.BAD_REQUEST, null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -39,10 +36,20 @@ public class AuthController {
     public ResponseEntity<Object> login(@Valid @RequestBody LoginDTO loginDTO) {
         try {
             LoginResponse loginResponse = authService.login(loginDTO);
-            return ResponseHandler.generateResponse("User logged in successfully", HttpStatus.OK, loginResponse);
+            return ResponseEntity.ok(loginResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password");
         }
-        catch (Exception e) {
-            return ResponseHandler.generateResponse("Incorrect username or password", HttpStatus.UNAUTHORIZED, null);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Object> getCurrentUser(Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            UserResponse userResponse = authService.getCurrentUser(username);
+            return ResponseEntity.ok(userResponse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
