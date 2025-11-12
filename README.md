@@ -18,9 +18,12 @@ This app also has proper service and integration tests implemented with JUnit. G
 ```
 
 ### Run Tests
-./mvnw test
 
-TODO:
+```
+./mvnw test
+```
+
+### TODO:
 
 - Add better support for adding tags
 - Add public routes for a practical example where the web app's frontend might have public information regarding blogs which does not require authentication (more like a thing to consider if this would be a part of a real full stack project).
