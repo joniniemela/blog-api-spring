@@ -25,9 +25,11 @@ This app also has proper service and integration tests implemented with JUnit. G
 
 ### TODO:
 
-- Add better support for adding tags
-- Add public routes for a practical example where the web app's frontend might have public information regarding blogs which does not require authentication (more like a thing to consider if this would be a part of a real full stack project).
+- Add better support for adding/using tags in other entities.
+- Add a separate entity for an organization which could have many authors as member of that entity.
+- Add public routes for a practical example in where the web app's frontend might have public information regarding blogs which does not require authentication (more like a thing to consider if this would be a part of a real full stack project).
 - Add a separate frontend to demonstrate application functionality in practice.
+- Make a proper documentation of all REST-endpoints with Swagger, OpenAPI, etc.
 
 
 Author: Joni Niemelä
