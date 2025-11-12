@@ -5,7 +5,7 @@ This is a basic blog app api created using Spring boot. Idea of this was to expe
 Main things used in this project:
 
 - Spring Boot as framework on top of Java
-- Spring Data JPA (Jakarta Presence) as ORM for different types of data and using CRUD actions with built-in implementations.
+- Spring Data JPA (Jakarta Persistence) as ORM for different types of data and using CRUD actions with built-in implementations.
 - JWT token authentication
 - Layered architecture (Controller, Service, Repository, Entity)
 
