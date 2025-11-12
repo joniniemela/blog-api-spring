@@ -1,6 +1,6 @@
 ## Blog API Spring boot
 
-This is a basic blog app api created using Spring boot. Idea of this was to experiment Spring framework and gain overall knowledge of the ecosystem and creating web apps using the variety of Beans. 
+This is a basic blog app api created using Spring boot. Idea of this was to experiment Spring framework and gain overall knowledge of the ecosystem. 
 
 Main things used in this project:
 
